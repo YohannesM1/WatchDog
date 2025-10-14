@@ -12,6 +12,7 @@ Right now it only supports macOS (using the `log stream` command), but I’m pla
 
 - Streams macOS logs live
 - Filters for lines that look security-related (`Failed`, `Accepted`, `sudo`, etc.)
+- Burst detection: alerts if 5+ "Failed password" lines appear within 60 seconds (with warm-up to avoid startup noise)
 
 ---
 
