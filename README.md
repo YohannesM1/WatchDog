@@ -60,7 +60,7 @@ watchdog
 ---
 
 ```
-![WatchDog running example](docs/watchdog.png)
+![WatchDog running example](docs/image.png)
 ```
 
 ---
