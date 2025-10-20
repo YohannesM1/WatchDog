@@ -59,12 +59,6 @@ watchdog
 
 ---
 
-```
-![WatchDog running example](docs/image.png)
-```
-
----
-
 ## Project Structure
 
 ```
