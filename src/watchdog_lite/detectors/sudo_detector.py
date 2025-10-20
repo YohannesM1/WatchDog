@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Optional, Callable
 
 SUDO_HEAD_RE = re.compile(
-    r"^sudo:\s+(?P<user>\S+)\s*:\s*(?:(?P<fail>\d+)\s+incorrect password attempts?)?(?:\s*;\s*)?(?P<rest>.*)$",
+    r"sudo(?:\[\d+\])?:\s*(?P<user>\S+)\s*:\s*(?:(?P<fail>\d+)\s+incorrect password attempts?)?\s*;\s*(?P<rest>.*)$",
     re.IGNORECASE,
 )
 
@@ -104,11 +104,13 @@ class SudoDetector:
         # 1) fail streak
         if ev.outcome == "fail":
             count = max(1, ev.fail_count)
-        for _ in range(count):
-            win.append(now)
+            for _ in range(count):
+                win.append(now)
+
             cutoff = now - self.cfg["fail_streak_window_sec"]
             while win and win[0] < cutoff:
                 win.popleft()
+
             if len(win) >= self.cfg["fail_streak_threshold"]:
                 self._alert(
                     "SUDO_FAIL_STREAK",

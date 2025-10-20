@@ -1,0 +1,2 @@
+{"ts": "2025-10-19T19:44:00.840736Z", "rule_id": "SUDO_FAIL_STREAK", "message": "yohannesm1 has 3 sudo failures on ttys003 in last 300s", "user": "yohannesm1", "tty": "ttys003", "count": 3}
+{"ts": "2025-10-19T19:55:00.272503Z", "rule_id": "SUDO_FAIL_STREAK", "message": "yohannesm1 has 3 sudo failures on ttys003 in last 300s", "user": "yohannesm1", "tty": "ttys003", "count": 3, "severity": "high"}

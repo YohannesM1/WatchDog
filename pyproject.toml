@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "watchdog-lite"
+version = "0.1.0"
+description = "Security log analyzer for SSH/Sudo events"
+authors = [{name = "Yohannes Mekuria"}]
+dependencies = []
+
+[project.scripts]
+watchdog = "watchdog_lite.cli:run"
