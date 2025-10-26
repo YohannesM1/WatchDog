@@ -1,4 +1,3 @@
-# detectors/sudo_detector.py
 import re
 import time
 import json
@@ -19,13 +18,13 @@ class SudoEvent:
     pwd: str
     target: str
     cmd: str
-    outcome: str  # "fail" | "success" | "unknown"
+    outcome: str
     fail_count: int = 0 
 
 DEFAULT_CFG = {
     "fail_streak_threshold": 3,
-    "fail_streak_window_sec": 300,        # 5 min
-    "fail_then_success_window_sec": 600,  # 10 min
+    "fail_streak_window_sec": 300,
+    "fail_then_success_window_sec": 600,
     "sensitive_cmd_patterns": [
         r"useradd|dscl|passwd|chsh",
         r"launchctl|crontab",
@@ -36,10 +35,8 @@ DEFAULT_CFG = {
 }
 
 class SudoDetector:
-    """Parser + rules. Provide alert_fn(rule, message, meta) to receive alerts."""
 
     def __init__(self, cfg: Optional[dict] = None, alert_fn: Optional[Callable[[str, str, dict], None]] = None):
-        # allow passing either the whole config or the "sudo" section
         base = cfg or {}
         if isinstance(base, dict) and "fail_streak_threshold" not in base and "sudo" in base:
             base = base["sudo"]
@@ -47,14 +44,12 @@ class SudoDetector:
         self.cfg = {**DEFAULT_CFG, **base}
         self.alert = alert_fn or self._print_alert
 
-        # state
-        self.fail_windows = defaultdict(lambda: deque())  # (user, tty) -> deque[timestamps]
+        self.fail_windows = defaultdict(lambda: deque())
         self.first_success_seen = set()
 
         self.sensitive_res = [re.compile(p) for p in self.cfg["sensitive_cmd_patterns"]]
         self.no_tty = {v.lower() for v in self.cfg["no_tty_values"]}
 
-    # ---------- parsing ----------
     def parse(self, line: str, ts: Optional[float] = None) -> Optional[SudoEvent]:
         m = SUDO_HEAD_RE.search(line.strip())
         if not m:
@@ -95,13 +90,11 @@ class SudoDetector:
             fail_count=fail_count,
         )
 
-    # ---------- rules ----------
     def on_event(self, ev: SudoEvent):
         key = (ev.user, ev.tty)
         now = ev.ts
         win = self.fail_windows[key]
 
-        # 1) fail streak
         if ev.outcome == "fail":
             count = max(1, ev.fail_count)
             for _ in range(count):
@@ -117,10 +110,8 @@ class SudoDetector:
                     f"{ev.user} has {len(win)} sudo failures on {ev.tty} in last {self.cfg['fail_streak_window_sec']}s",
                     {"user": ev.user, "tty": ev.tty, "count": len(win)}
                 )
-            return  # stop here for fails; success-only rules below
+            return
 
-        # success path:
-        # 2) fail-then-success within window
         cutoff = now - self.cfg["fail_then_success_window_sec"]
         while win and win[0] < cutoff:
             win.popleft()
@@ -132,7 +123,6 @@ class SudoDetector:
             )
             win.clear()
 
-        # 3) first-time sudo success
         if ev.user not in self.first_success_seen:
             self.first_success_seen.add(ev.user)
             self._alert(
@@ -141,7 +131,6 @@ class SudoDetector:
                 {"user": ev.user, "tty": ev.tty, "command": ev.cmd}
             )
 
-        # 4) no/malformed TTY
         if ev.tty.lower() in self.no_tty:
             self._alert(
                 "SUDO_NO_TTY",
@@ -149,7 +138,6 @@ class SudoDetector:
                 {"user": ev.user, "tty": ev.tty, "command": ev.cmd}
             )
 
-        # 5) sensitive commands
         for rx in self.sensitive_res:
             if rx.search(ev.cmd):
                 self._alert(
@@ -159,7 +147,6 @@ class SudoDetector:
                 )
                 break
 
-    # ---------- alert helpers ----------
     def _alert(self, rule: str, message: str, meta: dict):
         self.alert(rule, message, meta)
 

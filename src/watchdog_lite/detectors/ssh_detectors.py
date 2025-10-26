@@ -1,4 +1,3 @@
-# detectors/ssh_detectors.py
 import re
 from typing import Optional, Dict
 from .base import BaseDetector, Alert

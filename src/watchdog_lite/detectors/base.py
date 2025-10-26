@@ -1,8 +1,6 @@
-# detectors/base.py
 from typing import Optional, Dict
 
 class Alert(dict):
-    """Lightweight alert dict."""
     pass
 
 class BaseDetector:

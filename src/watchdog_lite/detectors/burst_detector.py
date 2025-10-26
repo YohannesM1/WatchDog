@@ -1,21 +1,16 @@
-# detectors/burst_detector.py
 import time
 from collections import deque, defaultdict
 from typing import Optional, Dict
 
 class BurstDetector:
-    """
-    Sliding-window counter for alerts: if N alerts for the same key happen
-    within window_sec, emit a high-severity burst alert.
-    Feed it *alerts* (dicts), not raw log lines.
-    """
+    
     rule_id = "BURST"
 
     def __init__(self, key_field: str = "src_ip", threshold: int = 5, window_sec: int = 60):
         self.key_field = key_field
         self.threshold = threshold
         self.window_sec = window_sec
-        self._buckets = defaultdict(deque)  # key -> deque[timestamps]
+        self._buckets = defaultdict(deque)
 
     def _gc(self, dq: deque, now: float):
         cutoff = now - self.window_sec
@@ -23,9 +18,7 @@ class BurstDetector:
             dq.popleft()
 
     def feed_alert(self, alert: Dict) -> Optional[Dict]:
-        """
-        Returns a new 'burst' alert dict when threshold is crossed, else None.
-        """
+
         key = alert.get(self.key_field)
         if key is None:
             return None
